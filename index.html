@@ -3,73 +3,116 @@
 <head>
   <title>Arte Cosmos</title>
   <meta charset="utf-8" />
+
   <script src="https://unpkg.com/three"></script>
   <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
+
   <style>
-    body { margin: 0; background: #000; color: #dec48b; font-family: "Garamond", serif; display: flex; }
-    #globe-container { flex: 1; height: 100vh; cursor: crosshair; }
-    #sidebar { 
-      width: 350px; height: 100vh; background: rgba(5, 5, 5, 0.95); 
-      border-left: 1px solid #c49a3b; padding: 25px; overflow-y: auto;
-      box-shadow: -10px 0 20px rgba(0,0,0,0.5);
+    body { margin: 0; background: black; }
+    #globe { width: 100vw; height: 100vh; }
+    
+    /* Mantendo seu layout, mas adicionando a barra lateral que você pediu */
+    #sidebar {
+      position: absolute;
+      top: 0; right: 0;
+      width: 300px; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-family: sans-serif;
+      border-left: 1px solid rgba(196,154,59,0.5);
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      z-index: 10;
     }
-    .artist-card {
-      border: 1px solid #333; padding: 15px; margin-bottom: 15px;
-      transition: 0.3s; cursor: pointer; background: rgba(20,20,20,0.5);
+    .artista-item {
+      padding: 10px;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
     }
-    .artist-card:hover { border-color: #c49a3b; background: rgba(196,154,59,0.1); }
-    h2 { border-bottom: 1px solid #c49a3b; padding-bottom: 10px; font-weight: lighter; letter-spacing: 2px; }
-    a { color: #fff; text-decoration: none; font-size: 0.9em; }
+    .artista-item:hover { background: rgba(196,154,59,0.2); }
   </style>
 </head>
 <body>
 
-<div id="globe-container"><div id="globe"></div></div>
 <div id="sidebar">
-  <h2 id="title">Cosmos Artístico</h2>
-  <div id="list">Selecione uma região ou artista no globo.</div>
+  <h2 style="color: #c49a3b">Artistas</h2>
+  <div id="lista-total">Clique em uma região...</div>
 </div>
 
+<div id="globe"></div>
+
 <script>
-  const globe = Globe()(document.getElementById('globe'))
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-    .backgroundColor('#000000')
-    .pointColor(() => '#c49a3b') // Cor das estrelinhas (Artistas)
-    .pointRadius(0.5)
-    .pointAltitude(0.05)
-    .pointLabel('nome');
+// --- CADASTRO DE ARTISTAS (Adicione os novos aqui) ---
+const artistas = [
+  { nome: "Seu Nome", lat: -23.5505, lng: -46.6333, estado: "São Paulo", link: "https://link1.com" },
+  { nome: "Artista Exemplo 2", lat: -22.9068, lng: -43.1729, estado: "Rio de Janeiro", link: "https://link2.com" }
+];
 
-  // Carregar dados dos artistas do seu arquivo artistas.json
-  fetch('./artistas.json')
-    .then(res => res.json())
-    .then(data => {
-      globe.pointsData(data);
-      atualizarLista(data, "Todos os Artistas");
-    });
+const globe = Globe()(document.getElementById('globe'))
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .backgroundColor('#000000');
 
-  // Função para atualizar a barra lateral
-  function atualizarLista(lista, regiao) {
-    const listDiv = document.getElementById('list');
-    document.getElementById('title').innerText = regiao;
-    listDiv.innerHTML = lista.map(art => `
-      <div class="artist-card" onclick="window.open('${art.link}', '_blank')">
-        <div style="color: #c49a3b; margin-bottom: 5px;">★ ${art.nome}</div>
-        <div style="font-size: 0.8em; color: #888;">${art.cidade} - ${art.estado}</div>
-        <div style="margin-top: 10px; font-style: italic; font-size: 0.85em;">${art.bio}</div>
+// 🎮 CONTROLES
+const controls = globe.controls();
+controls.enableZoom = true;
+controls.enablePan = true;
+controls.autoRotate = false; // Desliguei para facilitar o seu cadastro/clique
+
+// 🌞 LUZ
+const ambient = new THREE.AmbientLight(0xffffff, 1);
+globe.scene().add(ambient);
+
+// 🌍 FRONTEIRAS DOS ESTADOS DO BRASIL
+fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
+  .then(res => res.json())
+  .then(data => {
+    globe.polygonsData(data.features)
+      .polygonCapColor(() => "rgba(196,154,59,0.1)")
+      .polygonStrokeColor(() => "rgba(255,255,255,0.8)")
+      .polygonAltitude(0.01)
+      .onPolygonClick(d => {
+        // Zoom no Estado clicado
+        const estadoClicado = d.properties.name;
+        // Centraliza no Brasil/Estado com zoom
+        globe.pointOfView({ lat: -15, lng: -50, altitude: 1.2 }, 1000);
+        
+        filtrarArtistas(estadoClicado);
+      });
+  });
+
+// ✨ ESTRELINHAS (ARTISTAS) NO MAPA
+globe.pointsData(artistas)
+  .pointColor(() => "#c49a3b")
+  .pointRadius(0.5)
+  .pointAltitude(0.05)
+  .onPointClick(p => window.open(p.link, '_blank'));
+
+// Função para atualizar a listagem lateral
+function filtrarArtistas(estado) {
+  const listaDiv = document.getElementById('lista-total');
+  const filtrados = artistas.filter(a => a.estado === estado);
+  
+  if(filtrados.length === 0) {
+    listaDiv.innerHTML = `<p>Nenhum artista em ${estado} ainda.</p>`;
+  } else {
+    listaDiv.innerHTML = `<h3>${estado}</h3>` + filtrados.map(a => `
+      <div class="artista-item" onclick="window.open('${a.link}', '_blank')">
+        ⭐ ${a.nome}
       </div>
     `).join('');
   }
+}
 
-  // Evento de clique na "Estrela" do artista
-  globe.onPointClick(art => {
-    globe.pointOfView({ lat: art.lat, lng: art.lng, altitude: 0.5 }, 1000);
-    atualizarLista([art], art.nome);
-  });
+// ✨ ESTRELAS DE FUNDO
+const starGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(1000 * 3);
+for (let i = 0; i < 3000; i++) positions[i] = (Math.random() - 0.5) * 2000;
+starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 }));
+globe.scene().add(stars);
 
-  // Configuração de Luzes Estilo "Ritual"
-  const sun = new THREE.DirectionalLight(0xffffff, 1);
-  sun.position.set(1, 1, 1);
-  globe.scene().add(sun);
 </script>
 </body>
 </html>
