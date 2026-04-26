@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
 
   <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
 
   <style>
     body {
@@ -15,10 +16,6 @@
     #globe {
       width: 100vw;
       height: 100vh;
-    }
-
-    canvas {
-      outline: none;
     }
   </style>
 </head>
@@ -31,18 +28,19 @@
     .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
     .backgroundColor('#000000');
 
-  // 🌍 rotação automática suave
+  // rotação suave
   globe.controls().autoRotate = true;
-  globe.controls().autoRotateSpeed = 0.4;
+  globe.controls().autoRotateSpeed = 0.3;
 
-  // 🌟 brilho tipo "sol atrás"
-  globe.scene().add(new THREE.AmbientLight(0xbbbbbb, 0.6));
+  // 🌞 LUZ SUAVE (efeito sol atrás)
+  const light = new THREE.DirectionalLight(0xffe6b0, 1.2);
+  light.position.set(-200, 100, 400);
+  globe.scene().add(light);
 
-  const directionalLight = new THREE.DirectionalLight(0xffddaa, 1);
-  directionalLight.position.set(-400, 200, 400);
-  globe.scene().add(directionalLight);
+  const ambient = new THREE.AmbientLight(0x888888);
+  globe.scene().add(ambient);
 
-  // 🌍 carregar países (contornos)
+  // 🌍 carregar países
   fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
     .then(res => res.json())
     .then(worldData => {
@@ -52,24 +50,35 @@
         worldData.objects.countries
       ).features;
 
-      globe
-        .polygonsData(countries)
-        .polygonCapColor(d => {
-          // 🇧🇷 destaque Brasil
-          return d.properties.name === "Brazil"
-            ? "rgba(196, 154, 59, 0.6)" // dourado/ocre
-            : "rgba(255,255,255,0.03)";
-        })
-        .polygonSideColor(() => 'rgba(0,0,0,0)')
-        .polygonStrokeColor(() => 'rgba(255,255,255,0.2)')
+      // polígonos (contorno)
+      globe.polygonsData(countries)
+        .polygonCapColor(d =>
+          d.properties.name === "Brazil"
+            ? "rgba(196,154,59,0.7)"
+            : "rgba(255,255,255,0.02)"
+        )
+        .polygonStrokeColor(() => "rgba(255,255,255,0.25)")
         .polygonAltitude(d =>
-          d.properties.name === "Brazil" ? 0.02 : 0.005
+          d.properties.name === "Brazil" ? 0.02 : 0.004
         );
+
+      // 🔤 LABELS DOS PAÍSES
+      globe.labelsData(
+        countries.map(d => ({
+          lat: d.properties.latitude || d.properties.lat || 0,
+          lng: d.properties.longitude || d.properties.lng || 0,
+          text: d.properties.name
+        }))
+      )
+      .labelText('text')
+      .labelSize(1.5)
+      .labelColor(() => 'rgba(255,255,255,0.6)')
+      .labelAltitude(0.02);
     });
 
-  // ✨ estrelas no fundo
-  const starGeometry = new THREE.BufferGeometry();
-  const starCount = 2000;
+  // ✨ estrelas suaves
+  const starsGeometry = new THREE.BufferGeometry();
+  const starCount = 1500;
 
   const positions = new Float32Array(starCount * 3);
 
@@ -77,42 +86,31 @@
     positions[i] = (Math.random() - 0.5) * 2000;
   }
 
-  starGeometry.setAttribute(
+  starsGeometry.setAttribute(
     'position',
     new THREE.BufferAttribute(positions, 3)
   );
 
-  const starMaterial = new THREE.PointsMaterial({
+  const starsMaterial = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 1
+    size: 0.7,
+    opacity: 0.6,
+    transparent: true
   });
 
-  const stars = new THREE.Points(starGeometry, starMaterial);
+  const stars = new THREE.Points(starsGeometry, starsMaterial);
   globe.scene().add(stars);
 
-  // 📍 exemplo artista
+  // 📍 pontos artistas
   globe.pointsData([
-    { lat: -23.55, lng: -46.63 },
-    { lat: -22.90, lng: -43.20 }
+    { lat: -23.55, lng: -46.63, name: "SP" },
+    { lat: -22.90, lng: -43.20, name: "RJ" }
   ])
   .pointColor(() => '#ffffff')
   .pointAltitude(0.01)
-  .pointRadius(0.5);
-
-  // 🎯 clique para zoom no país
-  globe.onPolygonClick(polygon => {
-    const { lat, lng } = polygon.properties.centroid || { lat: 0, lng: 0 };
-
-    globe.pointOfView(
-      { lat, lng, altitude: 1.5 },
-      1000
-    );
-  });
+  .pointRadius(0.4);
 
 </script>
-
-<!-- necessário pra ler os mapas -->
-<script src="https://unpkg.com/topojson-client@3"></script>
 
 </body>
 </html>
