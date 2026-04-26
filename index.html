@@ -8,15 +8,8 @@
   <script src="https://unpkg.com/topojson-client@3"></script>
 
   <style>
-    body {
-      margin: 0;
-      background: black;
-    }
-
-    #globe {
-      width: 100vw;
-      height: 100vh;
-    }
+    body { margin: 0; background: black; }
+    #globe { width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
@@ -24,105 +17,91 @@
 <div id="globe"></div>
 
 <script>
-  const globe = Globe()(document.getElementById('globe'))
-    // 🌍 textura MAIS CLARA (isso muda tudo)
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-    .backgroundColor('#000000');
+const globe = Globe()(document.getElementById('globe'))
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  .backgroundColor('#000000');
 
-  // rotação
-  globe.controls().autoRotate = true;
-  globe.controls().autoRotateSpeed = 0.25;
+// 🎮 CONTROLES (isso resolve seu problema de zoom)
+const controls = globe.controls();
+controls.enableZoom = true;
+controls.enablePan = true;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.2;
 
-  // 🌞 LUZ (bem mais equilibrada)
-  const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-  globe.scene().add(ambient);
+// 🌞 LUZ MAIS SOFISTICADA
+const ambient = new THREE.AmbientLight(0xffffff, 1);
+globe.scene().add(ambient);
 
-  const directionalLight = new THREE.DirectionalLight(0xffe6b0, 1.5);
-  directionalLight.position.set(-300, 200, 400);
-  globe.scene().add(directionalLight);
+const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
+sun.position.set(-300, 200, 400);
+globe.scene().add(sun);
 
-  // 🌍 países
-  fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
-    .then(res => res.json())
-    .then(worldData => {
+// 🌍 PAÍSES
+fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
+  .then(res => res.json())
+  .then(worldData => {
 
-      const countries = topojson.feature(
-        worldData,
-        worldData.objects.countries
-      ).features;
+    const countries = topojson.feature(
+      worldData,
+      worldData.objects.countries
+    ).features;
 
-      globe.polygonsData(countries)
-        .polygonCapColor(d =>
-          d.properties.name === "Brazil"
-            ? "rgba(196,154,59,0.7)"
-            : "rgba(255,255,255,0.03)"
-        )
-        // ✨ CONTORNO MAIS FORTE
-        .polygonStrokeColor(() => "rgba(255,255,255,0.6)")
-        .polygonAltitude(d =>
-          d.properties.name === "Brazil" ? 0.015 : 0.003
-        );
-
-      // 🔤 LABELS CORRETOS (centro real do polígono)
-      globe.labelsData(
-        countries.map(d => {
-          const coords = d.geometry.coordinates.flat(2);
-          let lat = 0, lng = 0, count = 0;
-
-          coords.forEach(coord => {
-            if (Array.isArray(coord)) {
-              lng += coord[0];
-              lat += coord[1];
-              count++;
-            }
-          });
-
-          return {
-            lat: lat / count,
-            lng: lng / count,
-            text: d.properties.name
-          };
-        })
+    globe.polygonsData(countries)
+      .polygonCapColor(d =>
+        d.properties.name === "Brazil"
+          ? "rgba(196,154,59,0.8)"
+          : "rgba(255,255,255,0.01)"
       )
-      .labelText('text')
-      .labelSize(1.2)
-      .labelColor(() => 'rgba(255,255,255,0.7)')
-      .labelAltitude(0.02);
+      .polygonStrokeColor(() => "rgba(255,255,255,0.8)") // ✨ outline fino chique
+      .polygonAltitude(d =>
+        d.properties.name === "Brazil" ? 0.02 : 0.003
+      );
+
+    // 🎯 CLICK + ZOOM NO PAÍS
+    globe.onPolygonClick(d => {
+      const coords = d.geometry.coordinates.flat(2);
+      let lat = 0, lng = 0, count = 0;
+
+      coords.forEach(c => {
+        if (Array.isArray(c)) {
+          lng += c[0];
+          lat += c[1];
+          count++;
+        }
+      });
+
+      globe.pointOfView(
+        {
+          lat: lat / count,
+          lng: lng / count,
+          altitude: 1.2
+        },
+        1200
+      );
     });
 
-  // ✨ estrelas mais suaves
-  const starsGeometry = new THREE.BufferGeometry();
-  const starCount = 1200;
-
-  const positions = new Float32Array(starCount * 3);
-
-  for (let i = 0; i < starCount * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 2000;
-  }
-
-  starsGeometry.setAttribute(
-    'position',
-    new THREE.BufferAttribute(positions, 3)
-  );
-
-  const starsMaterial = new THREE.PointsMaterial({
-    color: 0xffffff,
-    size: 0.6,
-    opacity: 0.5,
-    transparent: true
   });
 
-  const stars = new THREE.Points(starsGeometry, starsMaterial);
-  globe.scene().add(stars);
+// ✨ ESTRELAS
+const starGeo = new THREE.BufferGeometry();
+const starCount = 1000;
+const positions = new Float32Array(starCount * 3);
 
-  // 📍 pontos
-  globe.pointsData([
-    { lat: -23.55, lng: -46.63 },
-    { lat: -22.90, lng: -43.20 }
-  ])
-  .pointColor(() => '#ffffff')
-  .pointAltitude(0.01)
-  .pointRadius(0.4);
+for (let i = 0; i < starCount * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 2000;
+}
+
+starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+const starMat = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: 0.5,
+  opacity: 0.5,
+  transparent: true
+});
+
+const stars = new THREE.Points(starGeo, starMat);
+globe.scene().add(stars);
 
 </script>
 
