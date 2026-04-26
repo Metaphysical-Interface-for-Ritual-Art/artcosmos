@@ -12,11 +12,15 @@
     body {
       margin: 0;
       background: black;
-      font-family: Arial, sans-serif;
     }
 
     #map {
       height: 100vh;
+    }
+
+    /* aqui é o truque */
+    .leaflet-tile {
+      filter: brightness(0.6) contrast(1.2) saturate(0.3);
     }
   </style>
 </head>
@@ -27,26 +31,25 @@
 <script>
   var map = L.map('map').setView([-14.2, -51.9], 4);
 
-  // mapa escuro mas visível
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+  // mapa claro (base)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-  // ponto SP (mais visível)
+  // pontos estilo "estrela"
   L.circleMarker([-23.55, -46.63], {
     radius: 6,
     color: "#ffffff",
     fillColor: "#ffffff",
     fillOpacity: 1
   }).addTo(map)
-    .bindPopup("Artista teste — São Paulo");
+    .bindPopup("Artista — São Paulo");
 
-  // ponto RJ
   L.circleMarker([-22.90, -43.20], {
     radius: 6,
     color: "#ffffff",
     fillColor: "#ffffff",
     fillOpacity: 1
   }).addTo(map)
-    .bindPopup("Artista teste — Rio de Janeiro");
+    .bindPopup("Artista — Rio de Janeiro");
 
 </script>
 
