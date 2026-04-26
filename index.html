@@ -3,107 +3,73 @@
 <head>
   <title>Arte Cosmos</title>
   <meta charset="utf-8" />
-
+  <script src="https://unpkg.com/three"></script>
   <script src="https://unpkg.com/globe.gl"></script>
-  <script src="https://unpkg.com/topojson-client@3"></script>
-
   <style>
-    body { margin: 0; background: black; }
-    #globe { width: 100vw; height: 100vh; }
+    body { margin: 0; background: #000; color: #dec48b; font-family: "Garamond", serif; display: flex; }
+    #globe-container { flex: 1; height: 100vh; cursor: crosshair; }
+    #sidebar { 
+      width: 350px; height: 100vh; background: rgba(5, 5, 5, 0.95); 
+      border-left: 1px solid #c49a3b; padding: 25px; overflow-y: auto;
+      box-shadow: -10px 0 20px rgba(0,0,0,0.5);
+    }
+    .artist-card {
+      border: 1px solid #333; padding: 15px; margin-bottom: 15px;
+      transition: 0.3s; cursor: pointer; background: rgba(20,20,20,0.5);
+    }
+    .artist-card:hover { border-color: #c49a3b; background: rgba(196,154,59,0.1); }
+    h2 { border-bottom: 1px solid #c49a3b; padding-bottom: 10px; font-weight: lighter; letter-spacing: 2px; }
+    a { color: #fff; text-decoration: none; font-size: 0.9em; }
   </style>
 </head>
 <body>
 
-<div id="globe"></div>
+<div id="globe-container"><div id="globe"></div></div>
+<div id="sidebar">
+  <h2 id="title">Cosmos Artístico</h2>
+  <div id="list">Selecione uma região ou artista no globo.</div>
+</div>
 
 <script>
-const globe = Globe()(document.getElementById('globe'))
-  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-  .backgroundColor('#000000');
+  const globe = Globe()(document.getElementById('globe'))
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+    .backgroundColor('#000000')
+    .pointColor(() => '#c49a3b') // Cor das estrelinhas (Artistas)
+    .pointRadius(0.5)
+    .pointAltitude(0.05)
+    .pointLabel('nome');
 
-// 🎮 CONTROLES (isso resolve seu problema de zoom)
-const controls = globe.controls();
-controls.enableZoom = true;
-controls.enablePan = true;
-controls.autoRotate = true;
-controls.autoRotateSpeed = 0.2;
-
-// 🌞 LUZ MAIS SOFISTICADA
-const ambient = new THREE.AmbientLight(0xffffff, 1);
-globe.scene().add(ambient);
-
-const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
-sun.position.set(-300, 200, 400);
-globe.scene().add(sun);
-
-// 🌍 PAÍSES
-fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
-  .then(res => res.json())
-  .then(worldData => {
-
-    const countries = topojson.feature(
-      worldData,
-      worldData.objects.countries
-    ).features;
-
-    globe.polygonsData(countries)
-      .polygonCapColor(d =>
-        d.properties.name === "Brazil"
-          ? "rgba(196,154,59,0.8)"
-          : "rgba(255,255,255,0.01)"
-      )
-      .polygonStrokeColor(() => "rgba(255,255,255,0.8)") // ✨ outline fino chique
-      .polygonAltitude(d =>
-        d.properties.name === "Brazil" ? 0.02 : 0.003
-      );
-
-    // 🎯 CLICK + ZOOM NO PAÍS
-    globe.onPolygonClick(d => {
-      const coords = d.geometry.coordinates.flat(2);
-      let lat = 0, lng = 0, count = 0;
-
-      coords.forEach(c => {
-        if (Array.isArray(c)) {
-          lng += c[0];
-          lat += c[1];
-          count++;
-        }
-      });
-
-      globe.pointOfView(
-        {
-          lat: lat / count,
-          lng: lng / count,
-          altitude: 1.2
-        },
-        1200
-      );
+  // Carregar dados dos artistas do seu arquivo artistas.json
+  fetch('./artistas.json')
+    .then(res => res.json())
+    .then(data => {
+      globe.pointsData(data);
+      atualizarLista(data, "Todos os Artistas");
     });
 
+  // Função para atualizar a barra lateral
+  function atualizarLista(lista, regiao) {
+    const listDiv = document.getElementById('list');
+    document.getElementById('title').innerText = regiao;
+    listDiv.innerHTML = lista.map(art => `
+      <div class="artist-card" onclick="window.open('${art.link}', '_blank')">
+        <div style="color: #c49a3b; margin-bottom: 5px;">★ ${art.nome}</div>
+        <div style="font-size: 0.8em; color: #888;">${art.cidade} - ${art.estado}</div>
+        <div style="margin-top: 10px; font-style: italic; font-size: 0.85em;">${art.bio}</div>
+      </div>
+    `).join('');
+  }
+
+  // Evento de clique na "Estrela" do artista
+  globe.onPointClick(art => {
+    globe.pointOfView({ lat: art.lat, lng: art.lng, altitude: 0.5 }, 1000);
+    atualizarLista([art], art.nome);
   });
 
-// ✨ ESTRELAS
-const starGeo = new THREE.BufferGeometry();
-const starCount = 1000;
-const positions = new Float32Array(starCount * 3);
-
-for (let i = 0; i < starCount * 3; i++) {
-  positions[i] = (Math.random() - 0.5) * 2000;
-}
-
-starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-const starMat = new THREE.PointsMaterial({
-  color: 0xffffff,
-  size: 0.5,
-  opacity: 0.5,
-  transparent: true
-});
-
-const stars = new THREE.Points(starGeo, starMat);
-globe.scene().add(stars);
-
+  // Configuração de Luzes Estilo "Ritual"
+  const sun = new THREE.DirectionalLight(0xffffff, 1);
+  sun.position.set(1, 1, 1);
+  globe.scene().add(sun);
 </script>
-
 </body>
 </html>
