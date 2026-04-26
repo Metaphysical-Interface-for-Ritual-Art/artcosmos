@@ -10,37 +10,29 @@
     body { margin: 0; background: black; overflow: hidden; font-family: 'Garamond', serif; }
     #globe { width: 100vw; height: 100vh; }
     
-    /* Barra lateral começa escondida e por cima do globo */
     #sidebar {
       position: absolute;
       top: 0; right: 0;
-      width: 350px; height: 100vh;
-      background: rgba(0, 0, 0, 0.9);
+      width: 380px; height: 100vh;
+      background: rgba(5, 5, 5, 0.95);
       color: #c49a3b;
-      border-left: 1px solid rgba(196, 154, 59, 0.5);
-      padding: 30px;
+      border-left: 1px solid rgba(196, 154, 59, 0.3);
+      padding: 40px 30px;
       box-sizing: border-box;
-      overflow-y: auto;
-      display: none; /* Escondida inicialmente */
+      display: none;
       z-index: 100;
-      transition: 0.5s;
     }
 
-    .close-btn {
-      position: absolute; top: 10px; left: 10px;
-      color: white; cursor: pointer; font-size: 20px;
-    }
+    .close-btn { position: absolute; top: 20px; right: 20px; color: #c49a3b; cursor: pointer; font-size: 24px; }
 
     .artista-card {
-      background: rgba(20, 20, 20, 0.8);
-      border: 1px solid #333;
-      padding: 15px; margin-bottom: 15px;
-      cursor: pointer; transition: 0.3s;
+      border-bottom: 1px solid rgba(196, 154, 59, 0.2);
+      padding: 20px 0;
+      cursor: pointer;
     }
-
-    .artista-card:hover { border-color: #c49a3b; background: rgba(196, 154, 59, 0.1); }
-
-    h2 { font-weight: lighter; letter-spacing: 3px; text-transform: uppercase; border-bottom: 1px solid #c49a3b; padding-bottom: 10px; }
+    .artista-card:hover { color: white; }
+    
+    h2 { font-weight: lighter; letter-spacing: 5px; text-transform: uppercase; border-bottom: 1px solid #c49a3b; padding-bottom: 15px; }
   </style>
 </head>
 <body>
@@ -54,62 +46,83 @@
 <div id="globe"></div>
 
 <script>
-// BASE DE DADOS (Aqui você cadastra os artistas por estado)
-const artistasData = [
-  { nome: "Seu Nome", estado: "São Paulo", lat: -23.55, lng: -46.63, link: "#", bio: "Artista Visual" },
-  { nome: "Exemplo Rio", estado: "Rio de Janeiro", lat: -22.90, lng: -43.17, link: "#", bio: "Artes Visuais" }
-];
+// <=== COLE O SEU LINK DA PLANILHA (CSV) ABAIXO ENTRE AS ASPAS ===
+const URL_PLANILHA = https://docs.google.com/spreadsheets/d/1kUl3PZag6aHHD-Q7qMaTC2J-VV4X9xtCrzCt9jhIXxY/edit?usp=sharing;
+
+let artistasData = [];
 
 const globe = Globe()(document.getElementById('globe'))
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
   .backgroundColor('#000000')
   .showAtmosphere(true)
-  .atmosphereColor("#c49a3b")
-  .atmosphereAltitude(0.15);
+  .atmosphereColor("#c49a3b");
 
-// Carregando as divisões dos estados do Brasil
+// 1. FUNÇÃO QUE BUSCA OS DADOS DA SUA PLANILHA
+function carregarArtistas() {
+  fetch(URL_PLANILHA)
+    .then(res => res.text())
+    .then(csv => {
+      const linhas = csv.split('\n').slice(1); // Pula o cabeçalho da planilha
+      artistasData = linhas.map(linha => {
+        // A ordem aqui deve ser a mesma das colunas da sua planilha:
+        // Nome, Estado, Cidade, Site, Instagram, Contato
+        const [nome, estado, cidade, site, instagram, contato] = linha.split(',');
+        
+        // Coordenadas automáticas simplificadas (ajustaremos conforme necessário)
+        // Por enquanto, centralizamos no estado para teste
+        return {
+          nome: nome?.trim(),
+          estado: estado?.trim(),
+          cidade: cidade?.trim(),
+          link: site?.trim() || instagram?.trim(),
+          lat: estado?.trim() === "São Paulo" ? -23.55 : -15.79, // Exemplo de lat
+          lng: estado?.trim() === "São Paulo" ? -46.63 : -47.88  // Exemplo de lng
+        };
+      }).filter(a => a.nome); // Remove linhas vazias
+
+      desenharEstrelas();
+    });
+}
+
+// 2. DESENHA AS ESTRELINHAS NO GLOBO
+function desenharEstrelas() {
+  globe.htmlElementsData(artistasData)
+    .htmlElement(d => {
+      const el = document.createElement('div');
+      el.innerHTML = `<div style="color: #c49a3b; font-size: 20px; text-shadow: 0 0 10px #c49a3b; cursor: pointer;">★</div>`;
+      el.onclick = () => abrirPainel(d.estado);
+      return el;
+    });
+}
+
+// 3. MAPA DO BRASIL E CLIQUES
 fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
   .then(res => res.json())
   .then(geojson => {
     globe.polygonsData(geojson.features)
-      .polygonCapColor(() => 'rgba(196, 154, 59, 0.05)') // Quase invisível até interagir
+      .polygonCapColor(() => 'rgba(196, 154, 59, 0.02)')
       .polygonStrokeColor(() => 'rgba(196, 154, 59, 0.4)')
-      .polygonSideColor(() => 'rgba(0, 0, 0, 0.5)')
-      .polygonLabel(d => `<b>${d.properties.name}</b>`)
       .onPolygonClick(d => {
-        // 1. ZOOM NO ESTADO
-        // Para São Paulo, por exemplo, o globo gira e foca
-        globe.pointOfView({ lat: d.properties.latitude || -15, lng: d.properties.longitude || -50, altitude: 0.7 }, 1000);
-        
-        // 2. MOSTRAR LISTA
+        globe.pointOfView({ lat: -15, lng: -50, altitude: 1.2 }, 1000);
         abrirPainel(d.properties.name);
       });
   });
 
-// Estrelinhas dos Artistas no Mapa
-globe.pointsData(artistasData)
-  .pointColor(() => '#c49a3b')
-  .pointRadius(0.6)
-  .pointAltitude(0.02)
-  .onPointClick(p => abrirPainel(p.estado));
-
 function abrirPainel(nomeEstado) {
   const sidebar = document.getElementById('sidebar');
   const lista = document.getElementById('lista-artistas');
-  const titulo = document.getElementById('regiao-titulo');
-  
-  titulo.innerText = nomeEstado;
+  document.getElementById('regiao-titulo').innerText = nomeEstado;
   sidebar.style.display = 'block';
 
   const filtrados = artistasData.filter(a => a.estado === nomeEstado);
   
   if(filtrados.length === 0) {
-    lista.innerHTML = `<p style="color: #666; font-style: italic;">Nenhum artista cadastrado em ${nomeEstado} ainda.</p>`;
+    lista.innerHTML = `<p style="color: #444; margin-top: 20px;">Território em expansão...</p>`;
   } else {
     lista.innerHTML = filtrados.map(a => `
       <div class="artista-card" onclick="window.open('${a.link}', '_blank')">
-        <strong>${a.nome}</strong><br>
-        <small>${a.bio}</small>
+        <span style="color: #c49a3b">★</span> <strong>${a.nome}</strong><br>
+        <div style="font-size: 0.8em; margin-top: 5px; color: #888;">${a.cidade}</div>
       </div>
     `).join('');
   }
@@ -117,24 +130,15 @@ function abrirPainel(nomeEstado) {
 
 function fecharPainel() {
   document.getElementById('sidebar').style.display = 'none';
-  globe.pointOfView({ altitude: 2.5 }, 1000); // Volta o zoom para longe
+  globe.pointOfView({ altitude: 2.5 }, 1000);
 }
 
-// Luzes e Estrelas de Fundo
-const ambient = new THREE.AmbientLight(0xffffff, 1);
+// Inicialização
+const ambient = new THREE.AmbientLight(0xffffff, 1.2);
 globe.scene().add(ambient);
-
-const starGeo = new THREE.BufferGeometry();
-const starPositions = new Float32Array(2000 * 3);
-for (let i = 0; i < 6000; i++) starPositions[i] = (Math.random() - 0.5) * 2000;
-starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 1 }));
-globe.scene().add(stars);
-
-// Controles
+carregarArtistas();
 globe.controls().autoRotate = true;
-globe.controls().autoRotateSpeed = 0.2;
+globe.controls().autoRotateSpeed = 0.3;
 </script>
-
 </body>
 </html>
