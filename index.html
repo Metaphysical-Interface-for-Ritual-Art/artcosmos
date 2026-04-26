@@ -25,22 +25,23 @@
 
 <script>
   const globe = Globe()(document.getElementById('globe'))
-    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+    // 🌍 textura MAIS CLARA (isso muda tudo)
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .backgroundColor('#000000');
 
-  // rotação suave
+  // rotação
   globe.controls().autoRotate = true;
-  globe.controls().autoRotateSpeed = 0.3;
+  globe.controls().autoRotateSpeed = 0.25;
 
-  // 🌞 LUZ SUAVE (efeito sol atrás)
-  const light = new THREE.DirectionalLight(0xffe6b0, 1.2);
-  light.position.set(-200, 100, 400);
-  globe.scene().add(light);
-
-  const ambient = new THREE.AmbientLight(0x888888);
+  // 🌞 LUZ (bem mais equilibrada)
+  const ambient = new THREE.AmbientLight(0xffffff, 1.2);
   globe.scene().add(ambient);
 
-  // 🌍 carregar países
+  const directionalLight = new THREE.DirectionalLight(0xffe6b0, 1.5);
+  directionalLight.position.set(-300, 200, 400);
+  globe.scene().add(directionalLight);
+
+  // 🌍 países
   fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
     .then(res => res.json())
     .then(worldData => {
@@ -50,35 +51,48 @@
         worldData.objects.countries
       ).features;
 
-      // polígonos (contorno)
       globe.polygonsData(countries)
         .polygonCapColor(d =>
           d.properties.name === "Brazil"
             ? "rgba(196,154,59,0.7)"
-            : "rgba(255,255,255,0.02)"
+            : "rgba(255,255,255,0.03)"
         )
-        .polygonStrokeColor(() => "rgba(255,255,255,0.25)")
+        // ✨ CONTORNO MAIS FORTE
+        .polygonStrokeColor(() => "rgba(255,255,255,0.6)")
         .polygonAltitude(d =>
-          d.properties.name === "Brazil" ? 0.02 : 0.004
+          d.properties.name === "Brazil" ? 0.015 : 0.003
         );
 
-      // 🔤 LABELS DOS PAÍSES
+      // 🔤 LABELS CORRETOS (centro real do polígono)
       globe.labelsData(
-        countries.map(d => ({
-          lat: d.properties.latitude || d.properties.lat || 0,
-          lng: d.properties.longitude || d.properties.lng || 0,
-          text: d.properties.name
-        }))
+        countries.map(d => {
+          const coords = d.geometry.coordinates.flat(2);
+          let lat = 0, lng = 0, count = 0;
+
+          coords.forEach(coord => {
+            if (Array.isArray(coord)) {
+              lng += coord[0];
+              lat += coord[1];
+              count++;
+            }
+          });
+
+          return {
+            lat: lat / count,
+            lng: lng / count,
+            text: d.properties.name
+          };
+        })
       )
       .labelText('text')
-      .labelSize(1.5)
-      .labelColor(() => 'rgba(255,255,255,0.6)')
+      .labelSize(1.2)
+      .labelColor(() => 'rgba(255,255,255,0.7)')
       .labelAltitude(0.02);
     });
 
-  // ✨ estrelas suaves
+  // ✨ estrelas mais suaves
   const starsGeometry = new THREE.BufferGeometry();
-  const starCount = 1500;
+  const starCount = 1200;
 
   const positions = new Float32Array(starCount * 3);
 
@@ -93,18 +107,18 @@
 
   const starsMaterial = new THREE.PointsMaterial({
     color: 0xffffff,
-    size: 0.7,
-    opacity: 0.6,
+    size: 0.6,
+    opacity: 0.5,
     transparent: true
   });
 
   const stars = new THREE.Points(starsGeometry, starsMaterial);
   globe.scene().add(stars);
 
-  // 📍 pontos artistas
+  // 📍 pontos
   globe.pointsData([
-    { lat: -23.55, lng: -46.63, name: "SP" },
-    { lat: -22.90, lng: -43.20, name: "RJ" }
+    { lat: -23.55, lng: -46.63 },
+    { lat: -22.90, lng: -43.20 }
   ])
   .pointColor(() => '#ffffff')
   .pointAltitude(0.01)
