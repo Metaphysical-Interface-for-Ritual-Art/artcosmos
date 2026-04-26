@@ -3,10 +3,8 @@
 <head>
   <title>Arte Cosmos</title>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/globe.gl"></script>
 
   <style>
     body {
@@ -14,44 +12,107 @@
       background: black;
     }
 
-    #map {
+    #globe {
+      width: 100vw;
       height: 100vh;
     }
 
-    /* aqui é o truque */
-    .leaflet-tile {
-      filter: brightness(0.6) contrast(1.2) saturate(0.3);
+    canvas {
+      outline: none;
     }
   </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div id="globe"></div>
 
 <script>
-  var map = L.map('map').setView([-14.2, -51.9], 4);
+  const globe = Globe()(document.getElementById('globe'))
+    .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+    .backgroundColor('#000000');
 
-  // mapa claro (base)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+  // 🌍 rotação automática suave
+  globe.controls().autoRotate = true;
+  globe.controls().autoRotateSpeed = 0.4;
 
-  // pontos estilo "estrela"
-  L.circleMarker([-23.55, -46.63], {
-    radius: 6,
-    color: "#ffffff",
-    fillColor: "#ffffff",
-    fillOpacity: 1
-  }).addTo(map)
-    .bindPopup("Artista — São Paulo");
+  // 🌟 brilho tipo "sol atrás"
+  globe.scene().add(new THREE.AmbientLight(0xbbbbbb, 0.6));
 
-  L.circleMarker([-22.90, -43.20], {
-    radius: 6,
-    color: "#ffffff",
-    fillColor: "#ffffff",
-    fillOpacity: 1
-  }).addTo(map)
-    .bindPopup("Artista — Rio de Janeiro");
+  const directionalLight = new THREE.DirectionalLight(0xffddaa, 1);
+  directionalLight.position.set(-400, 200, 400);
+  globe.scene().add(directionalLight);
+
+  // 🌍 carregar países (contornos)
+  fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
+    .then(res => res.json())
+    .then(worldData => {
+
+      const countries = topojson.feature(
+        worldData,
+        worldData.objects.countries
+      ).features;
+
+      globe
+        .polygonsData(countries)
+        .polygonCapColor(d => {
+          // 🇧🇷 destaque Brasil
+          return d.properties.name === "Brazil"
+            ? "rgba(196, 154, 59, 0.6)" // dourado/ocre
+            : "rgba(255,255,255,0.03)";
+        })
+        .polygonSideColor(() => 'rgba(0,0,0,0)')
+        .polygonStrokeColor(() => 'rgba(255,255,255,0.2)')
+        .polygonAltitude(d =>
+          d.properties.name === "Brazil" ? 0.02 : 0.005
+        );
+    });
+
+  // ✨ estrelas no fundo
+  const starGeometry = new THREE.BufferGeometry();
+  const starCount = 2000;
+
+  const positions = new Float32Array(starCount * 3);
+
+  for (let i = 0; i < starCount * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 2000;
+  }
+
+  starGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(positions, 3)
+  );
+
+  const starMaterial = new THREE.PointsMaterial({
+    color: 0xffffff,
+    size: 1
+  });
+
+  const stars = new THREE.Points(starGeometry, starMaterial);
+  globe.scene().add(stars);
+
+  // 📍 exemplo artista
+  globe.pointsData([
+    { lat: -23.55, lng: -46.63 },
+    { lat: -22.90, lng: -43.20 }
+  ])
+  .pointColor(() => '#ffffff')
+  .pointAltitude(0.01)
+  .pointRadius(0.5);
+
+  // 🎯 clique para zoom no país
+  globe.onPolygonClick(polygon => {
+    const { lat, lng } = polygon.properties.centroid || { lat: 0, lng: 0 };
+
+    globe.pointOfView(
+      { lat, lng, altitude: 1.5 },
+      1000
+    );
+  });
 
 </script>
+
+<!-- necessário pra ler os mapas -->
+<script src="https://unpkg.com/topojson-client@3"></script>
 
 </body>
 </html>
