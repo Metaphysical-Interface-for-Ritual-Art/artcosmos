@@ -18,23 +18,24 @@
 
 <script>
 const globe = Globe()(document.getElementById('globe'))
-  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+  // 🌑 REMOVE textura realista (ESSENCIAL)
+  .globeImageUrl(null)
+  .globeMaterial(new THREE.MeshBasicMaterial({ color: '#0a0a0a' }))
   .backgroundColor('#000000');
 
-// 🎮 CONTROLES (isso resolve seu problema de zoom)
+// 🎮 CONTROLES
 const controls = globe.controls();
 controls.enableZoom = true;
-controls.enablePan = true;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.2;
 
-// 🌞 LUZ MAIS SOFISTICADA
-const ambient = new THREE.AmbientLight(0xffffff, 1);
+// 🌞 LUZ SUAVE
+const ambient = new THREE.AmbientLight(0xffffff, 1.2);
 globe.scene().add(ambient);
 
-const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
-sun.position.set(-300, 200, 400);
-globe.scene().add(sun);
+const light = new THREE.DirectionalLight(0xffffff, 1);
+light.position.set(-200, 200, 400);
+globe.scene().add(light);
 
 // 🌍 PAÍSES
 fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
@@ -47,17 +48,19 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
     ).features;
 
     globe.polygonsData(countries)
+      // ✨ agora aparece MESMO
       .polygonCapColor(d =>
         d.properties.name === "Brazil"
-          ? "rgba(196,154,59,0.8)"
-          : "rgba(255,255,255,0.01)"
+          ? "rgba(196,154,59,0.9)"
+          : "rgba(255,255,255,0.05)"
       )
-      .polygonStrokeColor(() => "rgba(255,255,255,0.8)") // ✨ outline fino chique
+      // ✨ outline fino elegante
+      .polygonStrokeColor(() => "rgba(255,255,255,0.9)")
       .polygonAltitude(d =>
-        d.properties.name === "Brazil" ? 0.02 : 0.003
+        d.properties.name === "Brazil" ? 0.02 : 0.005
       );
 
-    // 🎯 CLICK + ZOOM NO PAÍS
+    // 🎯 CLICK + ZOOM
     globe.onPolygonClick(d => {
       const coords = d.geometry.coordinates.flat(2);
       let lat = 0, lng = 0, count = 0;
@@ -71,20 +74,16 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
       });
 
       globe.pointOfView(
-        {
-          lat: lat / count,
-          lng: lng / count,
-          altitude: 1.2
-        },
-        1200
+        { lat: lat / count, lng: lng / count, altitude: 1.2 },
+        1000
       );
     });
 
   });
 
-// ✨ ESTRELAS
+// ✨ estrelas
 const starGeo = new THREE.BufferGeometry();
-const starCount = 1000;
+const starCount = 800;
 const positions = new Float32Array(starCount * 3);
 
 for (let i = 0; i < starCount * 3; i++) {
@@ -95,15 +94,13 @@ starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
 const starMat = new THREE.PointsMaterial({
   color: 0xffffff,
-  size: 0.5,
+  size: 0.6,
   opacity: 0.5,
   transparent: true
 });
 
-const stars = new THREE.Points(starGeo, starMat);
-globe.scene().add(stars);
+globe.scene().add(new THREE.Points(starGeo, starMat));
 
 </script>
-
 </body>
 </html>
