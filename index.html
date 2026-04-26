@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Atlas Brasil</title>
+  <title>Arte Cosmos</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -9,8 +9,16 @@
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
   <style>
-    body { margin: 0; background: black; }
-    #map { height: 100vh; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #050505, #000000);
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      height: 100vh;
+      filter: brightness(0.7) contrast(1.2);
+    }
   </style>
 </head>
 <body>
@@ -18,15 +26,30 @@
 <div id="map"></div>
 
 <script>
-  var map = L.map('map').setView([-14.2, -51.9], 4);
+  var map = L.map('map', {
+    zoomControl: false
+  }).setView([-14.2, -51.9], 4);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map'
-  }).addTo(map);
+  // mapa escuro (sem nomes)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
-  // exemplo de artista
-  L.marker([-23.55, -46.63]).addTo(map)
-    .bindPopup("Artista exemplo — São Paulo");
+  // artista exemplo SP
+  L.circleMarker([-23.55, -46.63], {
+    radius: 5,
+    color: "#ffffff",
+    fillColor: "#ffffff",
+    fillOpacity: 0.9
+  }).addTo(map)
+    .bindPopup("Artista teste — São Paulo");
+
+  // artista exemplo RJ
+  L.circleMarker([-22.90, -43.20], {
+    radius: 5,
+    color: "#ffffff",
+    fillColor: "#ffffff",
+    fillOpacity: 0.9
+  }).addTo(map)
+    .bindPopup("Artista teste — Rio de Janeiro");
 
 </script>
 
