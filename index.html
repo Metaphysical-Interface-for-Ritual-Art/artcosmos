@@ -21,22 +21,22 @@ const globe = Globe()(document.getElementById('globe'))
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
   .backgroundColor('#000000');
 
-// 🎮 CONTROLES (isso resolve seu problema de zoom)
+// 🎮 CONTROLES
 const controls = globe.controls();
 controls.enableZoom = true;
 controls.enablePan = true;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.2;
 
-// 🌞 LUZ MAIS SOFISTICADA
-const ambient = new THREE.AmbientLight(0xffffff, 1);
+// 🌞 LUZ (ajustada pra não escurecer)
+const ambient = new THREE.AmbientLight(0xffffff, 1.2);
 globe.scene().add(ambient);
 
-const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
+const sun = new THREE.DirectionalLight(0xffe6b0, 1.3);
 sun.position.set(-300, 200, 400);
 globe.scene().add(sun);
 
-// 🌍 PAÍSES
+// 🌍 PAÍSES (CORRIGIDO)
 fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
   .then(res => res.json())
   .then(worldData => {
@@ -49,15 +49,15 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
     globe.polygonsData(countries)
       .polygonCapColor(d =>
         d.properties.name === "Brazil"
-          ? "rgba(196,154,59,0.8)"
-          : "rgba(255,255,255,0.01)"
+          ? "rgba(196,154,59,0.85)" // 🇧🇷 destaque elegante
+          : "rgba(255,255,255,0.06)" // 🌍 visível mas sutil
       )
-      .polygonStrokeColor(() => "rgba(255,255,255,0.8)") // ✨ outline fino chique
+      .polygonStrokeColor(() => "rgba(255,255,255,0.9)") // ✨ outline branco fino
       .polygonAltitude(d =>
-        d.properties.name === "Brazil" ? 0.02 : 0.003
+        d.properties.name === "Brazil" ? 0.02 : 0.004
       );
 
-    // 🎯 CLICK + ZOOM NO PAÍS
+    // 🎯 CLICK + ZOOM (centro real melhorado)
     globe.onPolygonClick(d => {
       const coords = d.geometry.coordinates.flat(2);
       let lat = 0, lng = 0, count = 0;
@@ -82,9 +82,9 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
 
   });
 
-// ✨ ESTRELAS
+// ✨ ESTRELAS (mais suaves)
 const starGeo = new THREE.BufferGeometry();
-const starCount = 1000;
+const starCount = 800;
 const positions = new Float32Array(starCount * 3);
 
 for (let i = 0; i < starCount * 3; i++) {
@@ -96,7 +96,7 @@ starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 const starMat = new THREE.PointsMaterial({
   color: 0xffffff,
   size: 0.5,
-  opacity: 0.5,
+  opacity: 0.4,
   transparent: true
 });
 
