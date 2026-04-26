@@ -1,293 +1,107 @@
 <!DOCTYPE html>
-
 <html>
 <head>
   <title>Arte Cosmos</title>
   <meta charset="utf-8" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Cinzel:wght@300;400&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://unpkg.com/globe.gl@2.27.0"></script>
+
+  <script src="https://unpkg.com/globe.gl"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #000; overflow: hidden; cursor: crosshair; }
-    #globe-container { width: 100vw; height: 100vh; }
-
-```
-#title {
-  position: fixed;
-  top: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  pointer-events: none;
-  z-index: 10;
-}
-#title h1 {
-  font-family: 'Cinzel', serif;
-  font-weight: 300;
-  font-size: 12px;
-  letter-spacing: 0.5em;
-  color: rgba(255,255,255,0.4);
-  text-transform: uppercase;
-}
-
-#card {
-  position: fixed;
-  top: 50%;
-  right: 44px;
-  transform: translateY(-50%);
-  width: 250px;
-  background: rgba(4,4,4,0.92);
-  border: 1px solid rgba(255,255,255,0.1);
-  padding: 26px 22px 22px;
-  display: none;
-  z-index: 100;
-  backdrop-filter: blur(16px);
-}
-#card-close {
-  position: absolute;
-  top: 10px; right: 14px;
-  font-size: 14px;
-  color: rgba(255,255,255,0.25);
-  cursor: pointer;
-}
-#card-close:hover { color: rgba(255,255,255,0.7); }
-#card-star { font-size: 16px; margin-bottom: 12px; display: block; }
-#card-name {
-  font-family: 'Cinzel', serif;
-  font-size: 13px;
-  color: rgba(255,255,255,0.88);
-  letter-spacing: 0.1em;
-  margin-bottom: 5px;
-}
-#card-location {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 12px;
-  color: rgba(255,255,255,0.3);
-  margin-bottom: 14px;
-}
-#card-line { width: 28px; height: 1px; background: rgba(255,255,255,0.12); margin-bottom: 14px; }
-#card-discipline {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 0.25em;
-  color: rgba(255,255,255,0.35);
-  text-transform: uppercase;
-  margin-bottom: 10px;
-}
-#card-bio {
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 13px;
-  color: rgba(255,255,255,0.5);
-  line-height: 1.7;
-  margin-bottom: 18px;
-}
-#card-link {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  color: rgba(255,255,255,0.25);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 2px;
-  text-transform: uppercase;
-}
-#card-link:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.35); }
-```
-
+    body { margin: 0; background: black; }
+    #globe { width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
 
-<div id="globe-container"></div>
-<div id="title"><h1>Arte Cosmos</h1></div>
-
-<div id="card">
-  <span id="card-close" onclick="closeCard()">✕</span>
-  <span id="card-star">✦</span>
-  <div id="card-name"></div>
-  <div id="card-location"></div>
-  <div id="card-line"></div>
-  <div id="card-discipline"></div>
-  <div id="card-bio"></div>
-  <a id="card-link" href="#" target="_blank">ver portfólio →</a>
-</div>
+<div id="globe"></div>
 
 <script>
-
-// ──────────────────────────────────────────────────
-// ARTISTAS — edite aqui para adicionar novos
-// ──────────────────────────────────────────────────
-const ARTISTS = [
-  {
-    name: "Deusa",
-    neighborhood: "Butantã",
-    city: "São Paulo",
-    country: "Brasil",
-    lat: -23.5663,
-    lng: -46.7172,
-    discipline: "Escultura · Instalação · Vídeo",
-    bio: "Pesquisa símbolos, proto-linguagem e metafísica. A matéria como sítio de transmissão entre dimensões.",
-    link: "https://instagram.com",
-    color: "#c49a3b"
-  }
-  // Para adicionar outro artista, copie o bloco acima e adicione abaixo
-];
-
-// ──────────────────────────────────────────────────
-// GLOBO
-// ──────────────────────────────────────────────────
-const globe = Globe()(document.getElementById('globe-container'))
+const globe = Globe()(document.getElementById('globe'))
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-  .backgroundColor('#000000')
-  .atmosphereColor('rgba(100,140,255,0.12)')
-  .atmosphereAltitude(0.1);
+  .backgroundColor('#000000');
 
+// 🎮 CONTROLES (isso resolve seu problema de zoom)
 const controls = globe.controls();
 controls.enableZoom = true;
-controls.enablePan = false;
+controls.enablePan = true;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.18;
+controls.autoRotateSpeed = 0.2;
 
-// Iluminação
-globe.scene().add(new THREE.AmbientLight(0xffffff, 0.9));
+// 🌞 LUZ MAIS SOFISTICADA
+const ambient = new THREE.AmbientLight(0xffffff, 1);
+globe.scene().add(ambient);
+
 const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
 sun.position.set(-300, 200, 400);
 globe.scene().add(sun);
 
-// Estrelas de fundo
-const sg = new THREE.BufferGeometry();
-const sp = new Float32Array(1400 * 3);
-for (let i = 0; i < sp.length; i++) sp[i] = (Math.random() - 0.5) * 2000;
-sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
-globe.scene().add(new THREE.Points(sg,
-  new THREE.PointsMaterial({ color: 0xffffff, size: 0.38, opacity: 0.5, transparent: true })
-));
-
-// ──────────────────────────────────────────────────
-// PAÍSES
-// ──────────────────────────────────────────────────
+// 🌍 PAÍSES
 fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
-  .then(r => r.json())
-  .then(world => {
-    const countries = topojson.feature(world, world.objects.countries).features;
+  .then(res => res.json())
+  .then(worldData => {
 
-    globe
-      .polygonsData(countries)
-      .polygonCapColor(d => d.id == 76 ? 'rgba(196,154,59,0.08)' : 'rgba(255,255,255,0.01)')
-      .polygonStrokeColor(() => 'rgba(255,255,255,0.2)')
-      .polygonAltitude(() => 0.001);
+    const countries = topojson.feature(
+      worldData,
+      worldData.objects.countries
+    ).features;
 
+    globe.polygonsData(countries)
+      .polygonCapColor(d =>
+        d.properties.name === "Brazil"
+          ? "rgba(196,154,59,0.8)"
+          : "rgba(255,255,255,0.01)"
+      )
+      .polygonStrokeColor(() => "rgba(255,255,255,0.8)") // ✨ outline fino chique
+      .polygonAltitude(d =>
+        d.properties.name === "Brazil" ? 0.02 : 0.003
+      );
+
+    // 🎯 CLICK + ZOOM NO PAÍS
     globe.onPolygonClick(d => {
-      const flat = d.geometry.coordinates.flat(Infinity);
-      let lat = 0, lng = 0, n = 0;
-      for (let i = 0; i < flat.length - 1; i += 2) {
-        if (typeof flat[i] === 'number') { lng += flat[i]; lat += flat[i+1]; n++; }
-      }
-      if (n) globe.pointOfView({ lat: lat/n, lng: lng/n, altitude: 1.2 }, 1000);
+      const coords = d.geometry.coordinates.flat(2);
+      let lat = 0, lng = 0, count = 0;
+
+      coords.forEach(c => {
+        if (Array.isArray(c)) {
+          lng += c[0];
+          lat += c[1];
+          count++;
+        }
+      });
+
+      globe.pointOfView(
+        {
+          lat: lat / count,
+          lng: lng / count,
+          altitude: 1.2
+        },
+        1200
+      );
     });
 
-    addMarkers();
   });
 
-// ──────────────────────────────────────────────────
-// MARCADORES via THREE.js Sprites (funciona sempre)
-// ──────────────────────────────────────────────────
-const spriteList = [];
+// ✨ ESTRELAS
+const starGeo = new THREE.BufferGeometry();
+const starCount = 1000;
+const positions = new Float32Array(starCount * 3);
 
-function makeStarTexture(color) {
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, 128, 128);
-  ctx.font = '90px serif';
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 20;
-  ctx.fillText('✦', 64, 68);
-  return new THREE.CanvasTexture(c);
+for (let i = 0; i < starCount * 3; i++) {
+  positions[i] = (Math.random() - 0.5) * 2000;
 }
 
-function latLngToVec3(lat, lng, r) {
-  const phi = (90 - lat) * Math.PI / 180;
-  const theta = (lng + 180) * Math.PI / 180;
-  return new THREE.Vector3(
-    -r * Math.sin(phi) * Math.cos(theta),
-     r * Math.cos(phi),
-     r * Math.sin(phi) * Math.sin(theta)
-  );
-}
+starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-function addMarkers() {
-  const R = 103;
+const starMat = new THREE.PointsMaterial({
+  color: 0xffffff,
+  size: 0.5,
+  opacity: 0.5,
+  transparent: true
+});
 
-  ARTISTS.forEach(artist => {
-    const tex = makeStarTexture(artist.color || '#ffffff');
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, sizeAttenuation: true });
-    const sprite = new THREE.Sprite(mat);
-    sprite.position.copy(latLngToVec3(artist.lat, artist.lng, R));
-    sprite.scale.set(12, 12, 1);
-    sprite.userData.artist = artist;
-    globe.scene().add(sprite);
-    spriteList.push(sprite);
-  });
-
-  setupInteraction();
-}
-
-function setupInteraction() {
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-  const container = document.getElementById('globe-container');
-
-  container.addEventListener('click', e => {
-    const rect = container.getBoundingClientRect();
-    mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-    mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, globe.camera());
-    const hits = raycaster.intersectObjects(spriteList);
-    if (hits.length > 0) {
-      const a = hits[0].object.userData.artist;
-      openCard(a);
-      controls.autoRotate = false;
-      globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: 0.9 }, 900);
-    }
-  });
-
-  container.addEventListener('mousemove', e => {
-    const rect = container.getBoundingClientRect();
-    mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-    mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
-    raycaster.setFromCamera(mouse, globe.camera());
-    const hits = raycaster.intersectObjects(spriteList);
-    document.body.style.cursor = hits.length > 0 ? 'pointer' : 'crosshair';
-  });
-}
-
-// ──────────────────────────────────────────────────
-// CARD
-// ──────────────────────────────────────────────────
-function openCard(a) {
-  document.getElementById('card-star').style.color = a.color || '#fff';
-  document.getElementById('card-name').textContent = a.name;
-  document.getElementById('card-location').textContent = `${a.neighborhood} · ${a.city} · ${a.country}`;
-  document.getElementById('card-discipline').textContent = a.discipline;
-  document.getElementById('card-bio').textContent = a.bio;
-  const link = document.getElementById('card-link');
-  link.href = a.link || '#';
-  link.style.display = a.link ? 'inline' : 'none';
-  document.getElementById('card').style.display = 'block';
-}
-
-function closeCard() {
-  document.getElementById('card').style.display = 'none';
-  controls.autoRotate = true;
-}
+const stars = new THREE.Points(starGeo, starMat);
+globe.scene().add(stars);
 
 </script>
 
