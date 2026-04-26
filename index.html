@@ -5,26 +5,29 @@
   <meta charset="utf-8" />
   <script src="https://unpkg.com/three"></script>
   <script src="https://unpkg.com/globe.gl"></script>
+  <script src="https://unpkg.com/topojson-client@3"></script>
 
   <style>
     body { margin: 0; background: black; overflow: hidden; font-family: 'Garamond', serif; }
     #globe { width: 100vw; height: 100vh; }
+    
     #sidebar {
       position: absolute;
       top: 0; right: 0;
-      width: 380px; height: 100vh;
-      background: rgba(5, 5, 5, 0.95);
+      width: 350px; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
       color: #c49a3b;
       border-left: 1px solid rgba(196, 154, 59, 0.3);
       padding: 40px 30px;
       box-sizing: border-box;
       display: none;
       z-index: 100;
+      backdrop-filter: blur(10px);
     }
+
     .close-btn { position: absolute; top: 20px; right: 20px; color: #c49a3b; cursor: pointer; font-size: 24px; }
-    .artista-card { border-bottom: 1px solid rgba(196, 154, 59, 0.2); padding: 20px 0; cursor: pointer; }
-    .artista-card:hover { color: white; }
-    h2 { font-weight: lighter; letter-spacing: 5px; text-transform: uppercase; border-bottom: 1px solid #c49a3b; padding-bottom: 15px; }
+    .artista-card { border-bottom: 1px solid rgba(196, 154, 59, 0.2); padding: 15px 0; cursor: pointer; }
+    h2 { font-weight: lighter; letter-spacing: 4px; text-transform: uppercase; border-bottom: 1px solid #c49a3b; padding-bottom: 10px; }
   </style>
 </head>
 <body>
@@ -38,60 +41,64 @@
 <div id="globe"></div>
 
 <script>
-// AJUSTE AQUI: O link deve estar entre aspas e terminar com output=csv
 const URL_PLANILHA = 'https://docs.google.com/spreadsheets/d/1kUl3PZag6aHHD-Q7qMaTC2J-VV4X9xtCrzCt9jhIXxY/gviz/tq?tqx=out:csv';
 
 let artistasData = [];
 
 const globe = Globe()(document.getElementById('globe'))
-  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
   .backgroundColor('#000000')
   .showAtmosphere(true)
-  .atmosphereColor("#c49a3b");
+  .atmosphereColor("#ffffff")
+  .atmosphereAltitude(0.1);
 
+// 🌞 LUZ SOFISTICADA (Igual ao seu original)
+const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+globe.scene().add(ambient);
+const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
+sun.position.set(-300, 200, 400);
+globe.scene().add(sun);
+
+// 1. CARREGAR ARTISTAS DA PLANILHA
 function carregarArtistas() {
   fetch(URL_PLANILHA)
     .then(res => res.text())
     .then(csv => {
-      // Limpeza de aspas que o Google coloca no CSV
-      const limpar = (texto) => texto ? texto.replace(/"/g, '').trim() : '';
-      
+      const limpar = (t) => t ? t.replace(/"/g, '').trim() : '';
       const linhas = csv.split('\n').slice(1); 
-      artistasData = linhas.map(linha => {
-        const col = linha.split(',');
+      artistasData = linhas.map(l => {
+        const c = l.split(',');
         return {
-          nome: limpar(col[0]),
-          estado: limpar(col[1]),
-          cidade: limpar(col[2]),
-          link: limpar(col[3]) || limpar(col[4]), // Pega site ou instagram
-          lat: limpar(col[1]) === "São Paulo" ? -23.55 : -14.23, // Fallback Brasil
-          lng: limpar(col[1]) === "São Paulo" ? -46.63 : -51.92
+          nome: limpar(c[0]), estado: limpar(c[1]), cidade: limpar(c[2]),
+          link: limpar(c[3]) || limpar(c[4]),
+          lat: limpar(c[1]) === "São Paulo" ? -23.55 : -14.23,
+          lng: limpar(c[1]) === "São Paulo" ? -46.63 : -51.92
         };
       }).filter(a => a.nome);
-
       desenharEstrelas();
-    })
-    .catch(err => console.error("Erro ao carregar planilha:", err));
+    });
 }
 
 function desenharEstrelas() {
   globe.htmlElementsData(artistasData)
     .htmlElement(d => {
       const el = document.createElement('div');
-      el.innerHTML = `<div style="color: #c49a3b; font-size: 20px; text-shadow: 0 0 10px #c49a3b; cursor: pointer;">★</div>`;
+      el.innerHTML = `<div style="color: #c49a3b; font-size: 22px; text-shadow: 0 0 15px #c49a3b; cursor: pointer;">★</div>`;
       el.onclick = () => abrirPainel(d.estado);
       return el;
     });
 }
 
+// 🌍 ESTADOS COM DESIGN FINO E NOMES
 fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
   .then(res => res.json())
   .then(geojson => {
     globe.polygonsData(geojson.features)
-      .polygonCapColor(() => 'rgba(196, 154, 59, 0.02)')
-      .polygonStrokeColor(() => 'rgba(196, 154, 59, 0.4)')
+      .polygonCapColor(() => 'rgba(255, 255, 255, 0.01)')
+      .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.6)') // Outline fino chique
+      .polygonLabel(d => `<div style="background: rgba(0,0,0,0.7); padding: 5px; border: 1px solid #c49a3b; color: #c49a3b;">${d.properties.name}</div>`)
       .onPolygonClick(d => {
-        globe.pointOfView({ lat: -15, lng: -50, altitude: 1.2 }, 1000);
+        globe.pointOfView({ lat: -15, lng: -50, altitude: 1.1 }, 1000);
         abrirPainel(d.properties.name);
       });
   });
@@ -103,17 +110,13 @@ function abrirPainel(nomeEstado) {
   sidebar.style.display = 'block';
 
   const filtrados = artistasData.filter(a => a.estado === nomeEstado);
-  
-  if(filtrados.length === 0) {
-    lista.innerHTML = `<p style="color: #444; margin-top: 20px;">Território em expansão...</p>`;
-  } else {
-    lista.innerHTML = filtrados.map(a => `
+  lista.innerHTML = filtrados.length === 0 ? `<p>Território em expansão...</p>` : 
+    filtrados.map(a => `
       <div class="artista-card" onclick="window.open('${a.link.startsWith('http') ? a.link : 'https://'+a.link}', '_blank')">
         <span style="color: #c49a3b">★</span> <strong>${a.nome}</strong><br>
-        <div style="font-size: 0.8em; margin-top: 5px; color: #888;">${a.cidade}</div>
+        <div style="font-size: 0.8em; margin-top: 5px; color: #aaa;">${a.cidade}</div>
       </div>
     `).join('');
-  }
 }
 
 function fecharPainel() {
@@ -121,11 +124,16 @@ function fecharPainel() {
   globe.pointOfView({ altitude: 2.5 }, 1000);
 }
 
-const ambient = new THREE.AmbientLight(0xffffff, 1.2);
-globe.scene().add(ambient);
+// ✨ ESTRELAS DE FUNDO ORIGINAIS
+const starGeo = new THREE.BufferGeometry();
+const starPos = new Float32Array(1000 * 3);
+for (let i = 0; i < 3000; i++) starPos[i] = (Math.random() - 0.5) * 2000;
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+globe.scene().add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, opacity: 0.5, transparent: true })));
+
 carregarArtistas();
 globe.controls().autoRotate = true;
-globe.controls().autoRotateSpeed = 0.3;
+globe.controls().autoRotateSpeed = 0.2;
 </script>
 </body>
 </html>
