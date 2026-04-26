@@ -9,7 +9,6 @@
   <style>
     body { margin: 0; background: black; overflow: hidden; font-family: 'Garamond', serif; }
     #globe { width: 100vw; height: 100vh; }
-    
     #sidebar {
       position: absolute;
       top: 0; right: 0;
@@ -22,16 +21,9 @@
       display: none;
       z-index: 100;
     }
-
     .close-btn { position: absolute; top: 20px; right: 20px; color: #c49a3b; cursor: pointer; font-size: 24px; }
-
-    .artista-card {
-      border-bottom: 1px solid rgba(196, 154, 59, 0.2);
-      padding: 20px 0;
-      cursor: pointer;
-    }
+    .artista-card { border-bottom: 1px solid rgba(196, 154, 59, 0.2); padding: 20px 0; cursor: pointer; }
     .artista-card:hover { color: white; }
-    
     h2 { font-weight: lighter; letter-spacing: 5px; text-transform: uppercase; border-bottom: 1px solid #c49a3b; padding-bottom: 15px; }
   </style>
 </head>
@@ -46,8 +38,8 @@
 <div id="globe"></div>
 
 <script>
-// <=== COLE O SEU LINK DA PLANILHA (CSV) ABAIXO ENTRE AS ASPAS ===
-const URL_PLANILHA = https://docs.google.com/spreadsheets/d/1kUl3PZag6aHHD-Q7qMaTC2J-VV4X9xtCrzCt9jhIXxY/edit?usp=sharing;
+// AJUSTE AQUI: O link deve estar entre aspas e terminar com output=csv
+const URL_PLANILHA = 'https://docs.google.com/spreadsheets/d/1kUl3PZag6aHHD-Q7qMaTC2J-VV4X9xtCrzCt9jhIXxY/gviz/tq?tqx=out:csv';
 
 let artistasData = [];
 
@@ -57,34 +49,31 @@ const globe = Globe()(document.getElementById('globe'))
   .showAtmosphere(true)
   .atmosphereColor("#c49a3b");
 
-// 1. FUNÇÃO QUE BUSCA OS DADOS DA SUA PLANILHA
 function carregarArtistas() {
   fetch(URL_PLANILHA)
     .then(res => res.text())
     .then(csv => {
-      const linhas = csv.split('\n').slice(1); // Pula o cabeçalho da planilha
+      // Limpeza de aspas que o Google coloca no CSV
+      const limpar = (texto) => texto ? texto.replace(/"/g, '').trim() : '';
+      
+      const linhas = csv.split('\n').slice(1); 
       artistasData = linhas.map(linha => {
-        // A ordem aqui deve ser a mesma das colunas da sua planilha:
-        // Nome, Estado, Cidade, Site, Instagram, Contato
-        const [nome, estado, cidade, site, instagram, contato] = linha.split(',');
-        
-        // Coordenadas automáticas simplificadas (ajustaremos conforme necessário)
-        // Por enquanto, centralizamos no estado para teste
+        const col = linha.split(',');
         return {
-          nome: nome?.trim(),
-          estado: estado?.trim(),
-          cidade: cidade?.trim(),
-          link: site?.trim() || instagram?.trim(),
-          lat: estado?.trim() === "São Paulo" ? -23.55 : -15.79, // Exemplo de lat
-          lng: estado?.trim() === "São Paulo" ? -46.63 : -47.88  // Exemplo de lng
+          nome: limpar(col[0]),
+          estado: limpar(col[1]),
+          cidade: limpar(col[2]),
+          link: limpar(col[3]) || limpar(col[4]), // Pega site ou instagram
+          lat: limpar(col[1]) === "São Paulo" ? -23.55 : -14.23, // Fallback Brasil
+          lng: limpar(col[1]) === "São Paulo" ? -46.63 : -51.92
         };
-      }).filter(a => a.nome); // Remove linhas vazias
+      }).filter(a => a.nome);
 
       desenharEstrelas();
-    });
+    })
+    .catch(err => console.error("Erro ao carregar planilha:", err));
 }
 
-// 2. DESENHA AS ESTRELINHAS NO GLOBO
 function desenharEstrelas() {
   globe.htmlElementsData(artistasData)
     .htmlElement(d => {
@@ -95,7 +84,6 @@ function desenharEstrelas() {
     });
 }
 
-// 3. MAPA DO BRASIL E CLIQUES
 fetch('https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson')
   .then(res => res.json())
   .then(geojson => {
@@ -120,7 +108,7 @@ function abrirPainel(nomeEstado) {
     lista.innerHTML = `<p style="color: #444; margin-top: 20px;">Território em expansão...</p>`;
   } else {
     lista.innerHTML = filtrados.map(a => `
-      <div class="artista-card" onclick="window.open('${a.link}', '_blank')">
+      <div class="artista-card" onclick="window.open('${a.link.startsWith('http') ? a.link : 'https://'+a.link}', '_blank')">
         <span style="color: #c49a3b">★</span> <strong>${a.nome}</strong><br>
         <div style="font-size: 0.8em; margin-top: 5px; color: #888;">${a.cidade}</div>
       </div>
@@ -133,7 +121,6 @@ function fecharPainel() {
   globe.pointOfView({ altitude: 2.5 }, 1000);
 }
 
-// Inicialização
 const ambient = new THREE.AmbientLight(0xffffff, 1.2);
 globe.scene().add(ambient);
 carregarArtistas();
