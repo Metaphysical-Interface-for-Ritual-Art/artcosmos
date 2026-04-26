@@ -18,9 +18,8 @@
 
 <script>
 const globe = Globe()(document.getElementById('globe'))
-  // 🌑 REMOVE textura realista (ESSENCIAL)
-  .globeImageUrl(null)
-  .globeMaterial(new THREE.MeshBasicMaterial({ color: '#0a0a0a' }))
+  // 🌍 textura equilibrada (nem clara demais, nem escura demais)
+  .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
   .backgroundColor('#000000');
 
 // 🎮 CONTROLES
@@ -29,11 +28,11 @@ controls.enableZoom = true;
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.2;
 
-// 🌞 LUZ SUAVE
-const ambient = new THREE.AmbientLight(0xffffff, 1.2);
+// 🌞 LUZ AJUSTADA (esse é o segredo)
+const ambient = new THREE.AmbientLight(0xffffff, 1.5);
 globe.scene().add(ambient);
 
-const light = new THREE.DirectionalLight(0xffffff, 1);
+const light = new THREE.DirectionalLight(0xffe6b0, 1.2);
 light.position.set(-200, 200, 400);
 globe.scene().add(light);
 
@@ -48,16 +47,16 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
     ).features;
 
     globe.polygonsData(countries)
-      // ✨ agora aparece MESMO
+      // ✨ AGORA VISÍVEL MAS ELEGANTE
       .polygonCapColor(d =>
         d.properties.name === "Brazil"
-          ? "rgba(196,154,59,0.9)"
-          : "rgba(255,255,255,0.05)"
+          ? "rgba(196,154,59,0.8)"
+          : "rgba(255,255,255,0.08)"
       )
-      // ✨ outline fino elegante
-      .polygonStrokeColor(() => "rgba(255,255,255,0.9)")
+      // ✨ outline fino chique
+      .polygonStrokeColor(() => "rgba(255,255,255,0.6)")
       .polygonAltitude(d =>
-        d.properties.name === "Brazil" ? 0.02 : 0.005
+        d.properties.name === "Brazil" ? 0.02 : 0.004
       );
 
     // 🎯 CLICK + ZOOM
@@ -81,9 +80,9 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
 
   });
 
-// ✨ estrelas
+// ✨ estrelas (bem sutis)
 const starGeo = new THREE.BufferGeometry();
-const starCount = 800;
+const starCount = 600;
 const positions = new Float32Array(starCount * 3);
 
 for (let i = 0; i < starCount * 3; i++) {
@@ -94,8 +93,8 @@ starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
 const starMat = new THREE.PointsMaterial({
   color: 0xffffff,
-  size: 0.6,
-  opacity: 0.5,
+  size: 0.5,
+  opacity: 0.4,
   transparent: true
 });
 
