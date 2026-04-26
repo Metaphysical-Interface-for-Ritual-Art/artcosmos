@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <title>Arte Cosmos</title>
@@ -12,177 +13,91 @@
     body { background: #000; overflow: hidden; cursor: crosshair; }
     #globe-container { width: 100vw; height: 100vh; }
 
-    /* TÍTULO */
-    #title {
-      position: fixed;
-      top: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      pointer-events: none;
-      z-index: 10;
-    }
-    #title h1 {
-      font-family: 'Cinzel', serif;
-      font-weight: 300;
-      font-size: 12px;
-      letter-spacing: 0.5em;
-      color: rgba(255,255,255,0.4);
-      text-transform: uppercase;
-    }
+```
+#title {
+  position: fixed;
+  top: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+}
+#title h1 {
+  font-family: 'Cinzel', serif;
+  font-weight: 300;
+  font-size: 12px;
+  letter-spacing: 0.5em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+}
 
-    /* PAINEL LATERAL — lista de artistas do país */
-    #panel {
-      position: fixed;
-      top: 0; right: 0;
-      width: 300px;
-      height: 100vh;
-      background: rgba(3,3,3,0.93);
-      border-left: 1px solid rgba(255,255,255,0.07);
-      backdrop-filter: blur(20px);
-      display: none;
-      flex-direction: column;
-      z-index: 200;
-      overflow: hidden;
-    }
-    #panel-header {
-      padding: 36px 28px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      flex-shrink: 0;
-    }
-    #panel-close {
-      position: absolute;
-      top: 16px; right: 20px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.2);
-      cursor: pointer;
-      font-family: 'Cinzel', serif;
-    }
-    #panel-close:hover { color: rgba(255,255,255,0.6); }
-    #panel-country {
-      font-family: 'Cinzel', serif;
-      font-size: 11px;
-      letter-spacing: 0.4em;
-      color: rgba(255,255,255,0.5);
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    #panel-count {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 11px;
-      color: rgba(255,255,255,0.2);
-      letter-spacing: 0.1em;
-    }
-    #panel-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px 0;
-    }
-    #panel-list::-webkit-scrollbar { width: 2px; }
-    #panel-list::-webkit-scrollbar-track { background: transparent; }
-    #panel-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+#card {
+  position: fixed;
+  top: 50%;
+  right: 44px;
+  transform: translateY(-50%);
+  width: 250px;
+  background: rgba(4,4,4,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 26px 22px 22px;
+  display: none;
+  z-index: 100;
+  backdrop-filter: blur(16px);
+}
+#card-close {
+  position: absolute;
+  top: 10px; right: 14px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.25);
+  cursor: pointer;
+}
+#card-close:hover { color: rgba(255,255,255,0.7); }
+#card-star { font-size: 16px; margin-bottom: 12px; display: block; }
+#card-name {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.88);
+  letter-spacing: 0.1em;
+  margin-bottom: 5px;
+}
+#card-location {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 14px;
+}
+#card-line { width: 28px; height: 1px; background: rgba(255,255,255,0.12); margin-bottom: 14px; }
+#card-discipline {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#card-bio {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+#card-link {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: rgba(255,255,255,0.25);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+#card-link:hover { color: rgba(255,255,255,0.65); border-color: rgba(255,255,255,0.35); }
+```
 
-    .artist-row {
-      padding: 16px 28px;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      transition: background 0.2s;
-    }
-    .artist-row:hover { background: rgba(255,255,255,0.03); }
-    .artist-row-star {
-      font-size: 10px;
-      color: #c49a3b;
-      margin-bottom: 5px;
-      display: block;
-    }
-    .artist-row-name {
-      font-family: 'Cinzel', serif;
-      font-size: 12px;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: 0.08em;
-      margin-bottom: 3px;
-    }
-    .artist-row-location {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 11px;
-      color: rgba(255,255,255,0.25);
-    }
-    .artist-row-discipline {
-      font-family: 'Cinzel', serif;
-      font-size: 8px;
-      letter-spacing: 0.2em;
-      color: rgba(255,255,255,0.18);
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    /* CARD DETALHE do artista */
-    #card {
-      position: fixed;
-      top: 50%;
-      right: 320px;
-      transform: translateY(-50%);
-      width: 240px;
-      background: rgba(3,3,3,0.95);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 26px 22px 22px;
-      display: none;
-      z-index: 300;
-      backdrop-filter: blur(20px);
-    }
-    #card-close {
-      position: absolute;
-      top: 10px; right: 14px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.2);
-      cursor: pointer;
-    }
-    #card-close:hover { color: rgba(255,255,255,0.6); }
-    #card-star { font-size: 20px; margin-bottom: 12px; display: block; line-height: 1; }
-    #card-name {
-      font-family: 'Cinzel', serif;
-      font-size: 13px;
-      color: rgba(255,255,255,0.85);
-      letter-spacing: 0.1em;
-      margin-bottom: 5px;
-    }
-    #card-location {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 11px;
-      color: rgba(255,255,255,0.28);
-      margin-bottom: 14px;
-    }
-    #card-line { width: 24px; height: 1px; background: rgba(255,255,255,0.1); margin-bottom: 14px; }
-    #card-discipline {
-      font-family: 'Cinzel', serif;
-      font-size: 8px;
-      letter-spacing: 0.25em;
-      color: rgba(255,255,255,0.3);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-    #card-bio {
-      font-family: 'Cormorant Garamond', serif;
-      font-style: italic;
-      font-size: 12.5px;
-      color: rgba(255,255,255,0.45);
-      line-height: 1.75;
-      margin-bottom: 18px;
-    }
-    #card-link {
-      font-family: 'Cinzel', serif;
-      font-size: 8px;
-      letter-spacing: 0.3em;
-      color: rgba(255,255,255,0.2);
-      text-decoration: none;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding-bottom: 2px;
-      text-transform: uppercase;
-    }
-    #card-link:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.3); }
   </style>
 </head>
 <body>
@@ -190,20 +105,9 @@
 <div id="globe-container"></div>
 <div id="title"><h1>Arte Cosmos</h1></div>
 
-<!-- PAINEL LATERAL -->
-<div id="panel">
-  <div id="panel-header">
-    <span id="panel-close" onclick="closePanel()">✕</span>
-    <div id="panel-country"></div>
-    <div id="panel-count"></div>
-  </div>
-  <div id="panel-list"></div>
-</div>
-
-<!-- CARD DETALHE -->
 <div id="card">
   <span id="card-close" onclick="closeCard()">✕</span>
-  <span id="card-star">★</span>
+  <span id="card-star">✦</span>
   <div id="card-name"></div>
   <div id="card-location"></div>
   <div id="card-line"></div>
@@ -214,17 +118,15 @@
 
 <script>
 
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
 // ARTISTAS — edite aqui para adicionar novos
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
 const ARTISTS = [
   {
     name: "Deusa",
     neighborhood: "Butantã",
     city: "São Paulo",
-    state: "SP",
     country: "Brasil",
-    countryId: 76,         // ID numérico topojson (76 = Brasil)
     lat: -23.5663,
     lng: -46.7172,
     discipline: "Escultura · Instalação · Vídeo",
@@ -232,52 +134,42 @@ const ARTISTS = [
     link: "https://instagram.com",
     color: "#c49a3b"
   }
-  // Para adicionar: copie o bloco acima, ajuste os dados e o countryId
-  // IDs úteis: 840=EUA, 276=Alemanha, 250=França, 380=Itália, 724=Espanha
-  // 826=Reino Unido, 392=Japão, 156=China, 356=Índia, 710=África do Sul
+  // Para adicionar outro artista, copie o bloco acima e adicione abaixo
 ];
 
-// ══════════════════════════════════════════════════
-// GLOBO — mantendo visual original
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
+// GLOBO
+// ──────────────────────────────────────────────────
 const globe = Globe()(document.getElementById('globe-container'))
   .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-  .backgroundColor('#000000');
+  .backgroundColor('#000000')
+  .atmosphereColor('rgba(100,140,255,0.12)')
+  .atmosphereAltitude(0.1);
 
 const controls = globe.controls();
 controls.enableZoom = true;
-controls.enablePan = true;
+controls.enablePan = false;
 controls.autoRotate = true;
-controls.autoRotateSpeed = 0.2;
+controls.autoRotateSpeed = 0.18;
 
-// Iluminação original
-const ambient = new THREE.AmbientLight(0xffffff, 1);
-globe.scene().add(ambient);
+// Iluminação
+globe.scene().add(new THREE.AmbientLight(0xffffff, 0.9));
 const sun = new THREE.DirectionalLight(0xffe6b0, 1.2);
 sun.position.set(-300, 200, 400);
 globe.scene().add(sun);
 
 // Estrelas de fundo
 const sg = new THREE.BufferGeometry();
-const sp = new Float32Array(1000 * 3);
+const sp = new Float32Array(1400 * 3);
 for (let i = 0; i < sp.length; i++) sp[i] = (Math.random() - 0.5) * 2000;
 sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
 globe.scene().add(new THREE.Points(sg,
-  new THREE.PointsMaterial({ color: 0xffffff, size: 0.5, opacity: 0.5, transparent: true })
+  new THREE.PointsMaterial({ color: 0xffffff, size: 0.38, opacity: 0.5, transparent: true })
 ));
 
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
 // PAÍSES
-// ══════════════════════════════════════════════════
-// Monta índice: countryId → lista de artistas
-const artistsByCountry = {};
-ARTISTS.forEach(a => {
-  if (!artistsByCountry[a.countryId]) artistsByCountry[a.countryId] = [];
-  artistsByCountry[a.countryId].push(a);
-});
-
-let selectedCountryId = null;
-
+// ──────────────────────────────────────────────────
 fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
   .then(r => r.json())
   .then(world => {
@@ -285,75 +177,39 @@ fetch('https://unpkg.com/world-atlas@2/countries-110m.json')
 
     globe
       .polygonsData(countries)
-      .polygonCapColor(d => {
-        if (d.id == selectedCountryId) return 'rgba(196,154,59,0.12)';
-        if (artistsByCountry[d.id]) return 'rgba(255,255,255,0.04)';
-        return 'rgba(255,255,255,0.005)';
-      })
-      .polygonStrokeColor(() => 'rgba(255,255,255,0.35)')
-      .polygonLineWidth(0.5)
-      .polygonAltitude(d => d.id == selectedCountryId ? 0.006 : 0.001);
+      .polygonCapColor(d => d.id == 76 ? 'rgba(196,154,59,0.08)' : 'rgba(255,255,255,0.01)')
+      .polygonStrokeColor(() => 'rgba(255,255,255,0.2)')
+      .polygonAltitude(() => 0.001);
 
     globe.onPolygonClick(d => {
-      selectedCountryId = d.id;
-      globe.polygonsData(countries); // força refresh das cores
-
-      // centraliza no país
       const flat = d.geometry.coordinates.flat(Infinity);
       let lat = 0, lng = 0, n = 0;
       for (let i = 0; i < flat.length - 1; i += 2) {
         if (typeof flat[i] === 'number') { lng += flat[i]; lat += flat[i+1]; n++; }
       }
-      if (n) globe.pointOfView({ lat: lat/n, lng: lng/n, altitude: 1.5 }, 1000);
-
-      controls.autoRotate = false;
-      closeCard();
-      openPanel(d.id);
+      if (n) globe.pointOfView({ lat: lat/n, lng: lng/n, altitude: 1.2 }, 1000);
     });
 
     addMarkers();
   });
 
-// ══════════════════════════════════════════════════
-// MARCADORES — estrela Hollywood (5 pontas sólida)
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
+// MARCADORES via THREE.js Sprites (funciona sempre)
+// ──────────────────────────────────────────────────
 const spriteList = [];
 
-function makeHollywoodStar(color) {
-  const size = 128;
+function makeStarTexture(color) {
   const c = document.createElement('canvas');
-  c.width = c.height = size;
+  c.width = c.height = 128;
   const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, size, size);
-
-  const cx = size / 2, cy = size / 2;
-  const outerR = 48, innerR = 20;
-  const points = 5;
-
-  ctx.beginPath();
-  for (let i = 0; i < points * 2; i++) {
-    const angle = (i * Math.PI / points) - Math.PI / 2;
-    const r = i % 2 === 0 ? outerR : innerR;
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
-    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-
-  // glow
-  ctx.shadowColor = color;
-  ctx.shadowBlur = 16;
+  ctx.clearRect(0, 0, 128, 128);
+  ctx.font = '90px serif';
   ctx.fillStyle = color;
-  ctx.fill();
-
-  // brilho interno
-  ctx.shadowBlur = 0;
-  const grad = ctx.createRadialGradient(cx - 8, cy - 8, 2, cx, cy, outerR);
-  grad.addColorStop(0, 'rgba(255,255,255,0.5)');
-  grad.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = grad;
-  ctx.fill();
-
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 20;
+  ctx.fillText('✦', 64, 68);
   return new THREE.CanvasTexture(c);
 }
 
@@ -369,22 +225,21 @@ function latLngToVec3(lat, lng, r) {
 
 function addMarkers() {
   const R = 103;
+
   ARTISTS.forEach(artist => {
-    const tex = makeHollywoodStar(artist.color || '#c49a3b');
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const tex = makeStarTexture(artist.color || '#ffffff');
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, sizeAttenuation: true });
     const sprite = new THREE.Sprite(mat);
     sprite.position.copy(latLngToVec3(artist.lat, artist.lng, R));
-    sprite.scale.set(10, 10, 1);
+    sprite.scale.set(12, 12, 1);
     sprite.userData.artist = artist;
     globe.scene().add(sprite);
     spriteList.push(sprite);
   });
+
   setupInteraction();
 }
 
-// ══════════════════════════════════════════════════
-// INTERAÇÃO — clique e hover nos marcadores
-// ══════════════════════════════════════════════════
 function setupInteraction() {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
@@ -398,10 +253,9 @@ function setupInteraction() {
     const hits = raycaster.intersectObjects(spriteList);
     if (hits.length > 0) {
       const a = hits[0].object.userData.artist;
+      openCard(a);
       controls.autoRotate = false;
-      globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: 0.8 }, 900);
-      openPanel(a.countryId);
-      setTimeout(() => openCard(a), 500);
+      globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: 0.9 }, 900);
     }
   });
 
@@ -415,63 +269,13 @@ function setupInteraction() {
   });
 }
 
-// ══════════════════════════════════════════════════
-// PAINEL LATERAL — lista de artistas do país
-// ══════════════════════════════════════════════════
-function openPanel(countryId) {
-  const artists = artistsByCountry[countryId] || [];
-  const panel = document.getElementById('panel');
-  const countryName = artists.length > 0 ? artists[0].country : '—';
-
-  document.getElementById('panel-country').textContent = countryName;
-  document.getElementById('panel-count').textContent =
-    artists.length === 1 ? '1 artista' : `${artists.length} artistas`;
-
-  const list = document.getElementById('panel-list');
-  list.innerHTML = '';
-
-  if (artists.length === 0) {
-    list.innerHTML = `
-      <div style="padding: 32px 28px; font-family: 'Cormorant Garamond', serif;
-        font-style: italic; font-size: 12px; color: rgba(255,255,255,0.18);">
-        Nenhum artista cadastrado neste país ainda.
-      </div>`;
-  } else {
-    artists.forEach(a => {
-      const row = document.createElement('div');
-      row.className = 'artist-row';
-      row.innerHTML = `
-        <span class="artist-row-star" style="color:${a.color || '#c49a3b'}">★</span>
-        <div class="artist-row-name">${a.name}</div>
-        <div class="artist-row-location">${a.neighborhood} · ${a.city} · ${a.state}</div>
-        <div class="artist-row-discipline">${a.discipline}</div>
-      `;
-      row.addEventListener('click', () => {
-        globe.pointOfView({ lat: a.lat, lng: a.lng, altitude: 0.8 }, 900);
-        openCard(a);
-      });
-      list.appendChild(row);
-    });
-  }
-
-  panel.style.display = 'flex';
-}
-
-function closePanel() {
-  document.getElementById('panel').style.display = 'none';
-  document.getElementById('card').style.display = 'none';
-  controls.autoRotate = true;
-  selectedCountryId = null;
-}
-
-// ══════════════════════════════════════════════════
-// CARD DETALHE
-// ══════════════════════════════════════════════════
+// ──────────────────────────────────────────────────
+// CARD
+// ──────────────────────────────────────────────────
 function openCard(a) {
-  document.getElementById('card-star').style.color = a.color || '#c49a3b';
+  document.getElementById('card-star').style.color = a.color || '#fff';
   document.getElementById('card-name').textContent = a.name;
-  document.getElementById('card-location').textContent =
-    `${a.neighborhood} · ${a.city} · ${a.state} · ${a.country}`;
+  document.getElementById('card-location').textContent = `${a.neighborhood} · ${a.city} · ${a.country}`;
   document.getElementById('card-discipline').textContent = a.discipline;
   document.getElementById('card-bio').textContent = a.bio;
   const link = document.getElementById('card-link');
@@ -482,8 +286,10 @@ function openCard(a) {
 
 function closeCard() {
   document.getElementById('card').style.display = 'none';
+  controls.autoRotate = true;
 }
 
 </script>
+
 </body>
 </html>
